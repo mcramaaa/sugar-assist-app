@@ -2,7 +2,6 @@ import "react-native-gesture-handler";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
-// import { useUser } from "./app/hooks/zustand";
 import { NavigationContainer } from "@react-navigation/native";
 import Profile from "./app/pages/Profile";
 import NewUser from "./app/pages/NewUser";
@@ -13,8 +12,9 @@ import Setting from "./app/pages/Setting";
 import About from "./app/pages/About";
 import { AntDesign } from "@expo/vector-icons";
 import { useUser } from "./app/hooks/zustand";
+import * as SQLite from "expo-sqlite";
+import { useEffect } from "react";
 
-// const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 export default function App() {
   const { user, setUser } = useUser();
@@ -25,6 +25,29 @@ export default function App() {
     "Poppins-Medium": require("./assets/fonts/Poppins-Medium.ttf"),
     "Poppins-Regular": require("./assets/fonts/Poppins-Regular.ttf"),
   });
+
+  const db = SQLite.openDatabase("sapi.db");
+
+  function initDatabases() {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL, breakfast VARCHAR(100), lunch VARCHAR(100), dinner VARCHAR(100) );",
+        [],
+        () => console.log("Succes create Users Table"),
+        (error) => {
+          if (error) {
+            console.error("Error creating table: ", error);
+          }
+          return false;
+        }
+      );
+    });
+  }
+
+  useEffect(() => {
+    initDatabases();
+  }, []);
+
   if (!fontsLoaded) return null;
   return (
     <View style={{ flex: 1 }}>
@@ -37,8 +60,8 @@ export default function App() {
             drawerActiveTintColor: "#42459E",
             headerTintColor: "black",
           }}
-          // initialRouteName="AppTabs"
-          initialRouteName={`${user !== "" ? "AppTabs" : "newUser"}`}
+          initialRouteName="AppDrawer"
+          // initialRouteName={`${user !== "" ? "AppTabs" : "newUser"}`}
         >
           <Drawer.Screen
             name="Home"

@@ -44,13 +44,13 @@ export default function HomeHead() {
       <Text
         style={{
           marginTop: 10,
-          fontSize: 17,
+          fontSize: 20,
           fontFamily: "Poppins-Regular",
           color: "black",
           textAlign: "center",
         }}
       >
-        Sugar O'Clock Assistant for Parental Intervention
+        "Saatnya Anak Pelihara Gigi"
       </Text>
     </View>
   );

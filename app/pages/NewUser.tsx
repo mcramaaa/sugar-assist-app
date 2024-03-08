@@ -5,59 +5,58 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import Layout from "../components/Layout/Layout";
 import { useNavigation } from "@react-navigation/native";
-// import { useUser } from "../hooks/zustand";
-// import * as SQLite from "expo-sqlite";
+import * as SQLite from "expo-sqlite";
 import { Image } from "expo-image";
 import AppButton from "../components/AppButton";
 import { useUser } from "../hooks/zustand";
 
 export default function NewUser() {
   const { setUser } = useUser();
-  // const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState("");
 
-  // const db = SQLite.openDatabase("sapi.db");
+  const db = SQLite.openDatabase("sapi.db");
 
   const navigation = useNavigation();
 
-  // function createUser() {
-  //   return new Promise((resolve, reject) => {
-  //     db.transaction((tx) => {
-  //       tx.executeSql(
-  //         `INSERT INTO users (name) values (?)`,
-  //         [userName],
-  //         (_, { insertId, rowsAffected }) => {
-  //           resolve({ insertId, rowsAffected });
-  //         },
-  //         (error) => {
-  //           reject(error);
-  //           return false;
-  //         }
-  //       );
-  //     });
-  //   });
-  // }
+  function createUser() {
+    return new Promise((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `INSERT INTO users (name) values (?)`,
+          [userName],
+          (_, { insertId, rowsAffected }) => {
+            resolve({ insertId, rowsAffected });
+          },
+          (error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  }
 
   function handleSubmit() {
     Keyboard.dismiss();
-    // createUser()
-    //   .then((res: any) => {
-    //     if (res.rowsAffected === 1) {
-    //       setUser(userName);
-    //       Navigation.navigate("AppTabs" as never);
-    //     }
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //   });
+    createUser()
+      .then((res: any) => {
+        if (res.rowsAffected === 1) {
+          setUser(userName);
+          navigation.navigate("Home" as never);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
     console.log("tes");
-    navigation.navigate("Home" as never);
   }
 
   function handleTextInput(value: string) {
     setUser(value);
+    setUserName(value);
   }
 
   return (

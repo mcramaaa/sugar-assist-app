@@ -1,7 +1,7 @@
 import React from "react";
 
 import GradientLayout from "../components/Layout/GradientLayout";
-import { Text, View } from "react-native";
+import { Button, Text, View } from "react-native";
 import FeatureHead from "../components/FeatureHead";
 import AppScrollView from "../components/AppScrollView";
 import AppButton from "../components/AppButton";
@@ -40,6 +40,7 @@ export default function Setting() {
           >
             Jam Sarapan
           </Text>
+
           <Text
             style={{
               textAlign: "center",
@@ -47,7 +48,7 @@ export default function Setting() {
               fontSize: 17,
             }}
           >
-            Jam Sarapan
+            Jam Makan Siang
           </Text>
           <Text
             style={{
@@ -56,7 +57,7 @@ export default function Setting() {
               fontSize: 17,
             }}
           >
-            Jam Sarapan
+            Jam Makan Malam
           </Text>
           <AppButton
             BtnStyle={{
