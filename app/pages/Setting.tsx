@@ -1,12 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 
 import GradientLayout from "../components/Layout/GradientLayout";
-import { Button, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import FeatureHead from "../components/FeatureHead";
 import AppScrollView from "../components/AppScrollView";
 import AppButton from "../components/AppButton";
+import AppAlarmBox from "../components/AppAlarmBox";
 
 export default function Setting() {
+  /**
+   * State
+   */
+  const [show, setShow] = useState<boolean>(false);
+  const [date, setDate] = useState(new Date());
+
+  /**
+   * SQLITE
+   */
+
+  /**
+   * Client
+   */
+  function onChange() {
+    setShow(false);
+  }
+
+  function showTimepicker() {
+    setShow(true);
+  }
+
   const gradientProps = {
     startColor: "#E6E7FF",
     endColor: "white",

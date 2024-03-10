@@ -26,12 +26,16 @@ export default function App() {
     "Poppins-Regular": require("./assets/fonts/Poppins-Regular.ttf"),
   });
 
+  /**
+   * SQLite
+   */
+
   const db = SQLite.openDatabase("sapi.db");
 
   function initDatabases() {
     db.transaction((tx) => {
       tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL, breakfast VARCHAR(100), lunch VARCHAR(100), dinner VARCHAR(100) );",
+        "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL, breakfast VARCHAR(100) DEFAULT NULL, lunch VARCHAR(100) DEFAULT NULL, dinner VARCHAR(100) DEFAULT NULL);",
         [],
         () => console.log("Succes create Users Table"),
         (error) => {
@@ -44,7 +48,40 @@ export default function App() {
     });
   }
 
+  function getUserData() {
+    return new Promise((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          "SELECT * FROM users",
+          [],
+          (_, { rows }) => {
+            const userRows = rows._array;
+            resolve(userRows);
+          },
+          (error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  }
+
   useEffect(() => {
+    getUserData()
+      .then((userRows: any) => {
+        if (userRows.length > 0) {
+          setUser({
+            name: userRows[0].name,
+            breakfast: userRows[0].breakfast,
+            lunch: userRows[0].lunch,
+            dinner: userRows[0].dinner,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
     initDatabases();
   }, []);
 
@@ -60,8 +97,8 @@ export default function App() {
             drawerActiveTintColor: "#42459E",
             headerTintColor: "black",
           }}
-          initialRouteName="AppDrawer"
-          // initialRouteName={`${user !== "" ? "AppTabs" : "newUser"}`}
+          // initialRouteName="Setting"
+          initialRouteName={`${user.name && user.lunch ? "AppDrawer" : user.name && !user.lunch ? "Setting" : "NewUser"}`}
         >
           <Drawer.Screen
             name="Home"
@@ -114,7 +151,7 @@ export default function App() {
             }}
           />
           <Drawer.Screen
-            name="newUser"
+            name="NewUser"
             component={NewUser}
             options={{ headerShown: false, drawerItemStyle: { height: 0 } }}
           />

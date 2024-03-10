@@ -7,12 +7,30 @@ import {
 import { Image } from "expo-image";
 import { useUser } from "../hooks/zustand";
 import { useNavigation } from "@react-navigation/native";
+import * as SQLite from "expo-sqlite";
 
 export default function AppDrawer(props: any) {
   const { user } = useUser();
+  const db = SQLite.openDatabase("sapi.db");
   //   const statusBarHeight =
   //     Platform.OS === "ios" ? 45 : StatusBar.currentHeight ?? 0;
   const navigation = useNavigation();
+
+  function emptyTable() {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "DELETE FROM users",
+        [],
+        (_, result) => {
+          console.log("Table emptied successfully");
+        },
+        (error) => {
+          console.error("Error while emptying the table:", error);
+          return false;
+        }
+      );
+    });
+  }
 
   function goToProfile() {
     navigation.navigate("Profile" as never);
@@ -58,14 +76,16 @@ export default function AppDrawer(props: any) {
                   textAlign: "center",
                 }}
               >
-                Hai {user}
+                Hai {user.name}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
-      <Text>we are</Text>
+      <Text style={{ marginBottom: 100 }} onPress={emptyTable}>
+        we are
+      </Text>
     </View>
   );
 }

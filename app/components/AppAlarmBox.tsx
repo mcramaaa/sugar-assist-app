@@ -6,13 +6,15 @@ import { ltrimFirstZero } from "../helpers/ltrimZero";
 
 type TProps = {
   tittle: string;
-  alarmData: any;
-  notifications: any;
-  initNotification: any;
+  alarmData?: any;
+  notifications?: any;
+  initNotification?: any;
+  handlePayload?: (name: string, selectedDate: string[]) => void;
 };
 
 export default function AppAlarmBox(props: TProps) {
-  const { tittle, alarmData, notifications, initNotification } = props;
+  const { tittle, alarmData, notifications, initNotification, handlePayload } =
+    props;
 
   const db = SQLite.openDatabase("gimul.db");
 
@@ -61,17 +63,20 @@ export default function AppAlarmBox(props: TProps) {
       .format(currentDate)
       .split(".");
 
-    editAlarm(
-      Object.assign({
-        id: alarmData.id,
-        tag: alarmData.tag,
-        hours: timeToStore[0],
-        minute: timeToStore[1],
-      })
-    );
-
+    if (alarmData)
+      editAlarm(
+        Object.assign({
+          id: alarmData.id,
+          tag: alarmData.tag,
+          hours: timeToStore[0],
+          minute: timeToStore[1],
+        })
+      );
     setShow(false);
     setDate(currentDate);
+    if (handlePayload) {
+      handlePayload(tittle, timeToStore);
+    }
   }
 
   function showMode() {
@@ -85,15 +90,19 @@ export default function AppAlarmBox(props: TProps) {
   function setDefaultAlarm() {
     const now = new Date();
 
-    const dateWithTime = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      alarmData.hours,
-      alarmData.minute
-    );
+    if (alarmData) {
+      const dateWithTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        alarmData.hours,
+        alarmData.minute
+      );
 
-    return dateWithTime;
+      return dateWithTime;
+    } else {
+      return new Date();
+    }
   }
 
   return (

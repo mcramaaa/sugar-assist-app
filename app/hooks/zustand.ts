@@ -1,11 +1,25 @@
 import { create } from "zustand";
 
-interface IUser {
-  user: string;
-  setUser: (setName: string) => void;
+export interface IUser {
+  name: string;
+  breakfast: string;
+  lunch: string;
+  dinner: string;
 }
 
-export const useUser = create<IUser>((set) => ({
-  user: "",
-  setUser: (setName: string) => set({ user: setName }),
+export const UserDefaultValue = {
+  name: "",
+  breakfast: "",
+  lunch: "",
+  dinner: "",
+};
+
+interface IUserHook {
+  user: IUser;
+  setUser: (setName: IUser) => void;
+}
+
+export const useUser = create<IUserHook>((set) => ({
+  user: UserDefaultValue,
+  setUser: (pUser: IUser) => set({ user: pUser }),
 }));
