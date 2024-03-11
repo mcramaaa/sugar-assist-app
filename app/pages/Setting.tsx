@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import GradientLayout from "../components/Layout/GradientLayout";
 import { Text, View } from "react-native";
@@ -6,33 +6,36 @@ import FeatureHead from "../components/FeatureHead";
 import AppScrollView from "../components/AppScrollView";
 import AppButton from "../components/AppButton";
 import AppAlarmBox from "../components/AppAlarmBox";
+import { SettingNameID } from "../enum/setting.enum";
+import { IUser, UserDefaultValue } from "../hooks/zustand";
+import { useFocusEffect } from "@react-navigation/native";
+import { getUsers } from "../api/GET";
 
 export default function Setting() {
   /**
    * State
    */
-  const [show, setShow] = useState<boolean>(false);
-  const [date, setDate] = useState(new Date());
-
-  /**
-   * SQLITE
-   */
+  const [payload, setPayload] = useState<IUser & { id: number }>(
+    Object.assign(UserDefaultValue, { id: 1 })
+  );
 
   /**
    * Client
    */
-  function onChange() {
-    setShow(false);
-  }
-
-  function showTimepicker() {
-    setShow(true);
-  }
 
   const gradientProps = {
     startColor: "#E6E7FF",
     endColor: "white",
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      getUsers().then((res: any) => {
+        setPayload(res[0]);
+        console.log(res[0]);
+      });
+    }, [])
+  );
 
   return (
     <GradientLayout gradientProps={gradientProps}>
@@ -53,6 +56,12 @@ export default function Setting() {
         }}
       >
         <View style={{ padding: 10, gap: 40, paddingBottom: 230 }}>
+          {payload.name &&
+            Object.values(SettingNameID).map((setting, i) => {
+              return (
+                <AppAlarmBox alarmData={payload} tittle={setting} key={i} />
+              );
+            })}
           <Text
             style={{
               textAlign: "center",

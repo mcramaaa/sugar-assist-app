@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 export interface IUser {
+  id?: number;
   name: string;
   breakfast: string;
   lunch: string;

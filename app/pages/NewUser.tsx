@@ -8,14 +8,11 @@ import {
 import React, { useCallback, useState } from "react";
 import Layout from "../components/Layout/Layout";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import * as SQLite from "expo-sqlite";
-import { Image } from "expo-image";
 import AppButton from "../components/AppButton";
 import { IUser, useUser } from "../hooks/zustand";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { SettingNameID } from "../enum/setting.enum";
 import AppAlarmBox from "../components/AppAlarmBox";
+import { createUser } from "../api/POST";
 
 export default function NewUser() {
   const { setUser } = useUser();
@@ -35,25 +32,6 @@ export default function NewUser() {
 
   const [isCrud, setIsCrud] = useState(0);
 
-  const db = SQLite.openDatabase("sapi.db");
-  function createUser() {
-    return new Promise((resolve, reject) => {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `INSERT INTO users (name, breakfast, lunch, dinner) values (?,?,?,?)`,
-          [payload.name, payload.breakfast, payload.lunch, payload.dinner],
-          (_, { insertId, rowsAffected }) => {
-            resolve({ insertId, rowsAffected });
-          },
-          (error) => {
-            reject(error);
-            return false;
-          }
-        );
-      });
-    });
-  }
-
   function handleSubmit() {
     setIsCrud(isCrud + 1);
     const error: Record<string, string> = {};
@@ -66,7 +44,7 @@ export default function NewUser() {
       return;
     }
     Keyboard.dismiss();
-    createUser()
+    createUser(payload)
       .then((res: any) => {
         if (res.rowsAffected === 1) {
           setUser(payload);
@@ -79,7 +57,6 @@ export default function NewUser() {
   }
 
   function handleTextInput(value: string) {
-    // setUserName(value);
     setErrorObj({ ...errorObj, name: "" });
     setPayload({ ...payload, name: value });
   }

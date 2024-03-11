@@ -7,30 +7,13 @@ import {
 import { Image } from "expo-image";
 import { useUser } from "../hooks/zustand";
 import { useNavigation } from "@react-navigation/native";
-import * as SQLite from "expo-sqlite";
+import { emptyTable } from "../api/init";
 
 export default function AppDrawer(props: any) {
   const { user } = useUser();
-  const db = SQLite.openDatabase("sapi.db");
   //   const statusBarHeight =
   //     Platform.OS === "ios" ? 45 : StatusBar.currentHeight ?? 0;
   const navigation = useNavigation();
-
-  function emptyTable() {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "DELETE FROM users",
-        [],
-        (_, result) => {
-          console.log("Table emptied successfully");
-        },
-        (error) => {
-          console.error("Error while emptying the table:", error);
-          return false;
-        }
-      );
-    });
-  }
 
   function goToProfile() {
     navigation.navigate("Profile" as never);

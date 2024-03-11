@@ -6,95 +6,100 @@ import GradientLayout from "../components/Layout/GradientLayout";
 import AppScrollView from "../components/AppScrollView";
 import { Text, View } from "react-native";
 import AnalogClock from "../components/AnalogClock";
-import moment from "moment";
 import "moment/locale/id";
 import TaskCard from "../components/Home/TaskCard";
 import { useFocusEffect } from "@react-navigation/native";
 import { getUsers } from "../api/GET";
-import { IUser, UserDefaultValue } from "../hooks/zustand";
+import { IUser } from "../hooks/zustand";
 import { SettingNameID } from "../enum/setting.enum";
+import { appDayjs } from "../ constants/dayjs.constant";
 
 export default function Home() {
-  const [user, setUser] = useState<IUser>(UserDefaultValue);
+  /**
+   * HOOK
+   */
+
+  /**
+   * STATE
+   */
   const [schedule, setSchedule] = useState<string>(SettingNameID.MAKAN_SIANG);
-
-  const gradientProps = {
-    startColor: "#E6E7FF",
-    endColor: "white",
-  };
-
-  const days = moment().format("dddd");
-  const date = moment().format("DD MMMM");
-  const year = moment().format("YYYY");
-  // useEffect(() => {}, []);
+  const [hourTask, setHourTask] = useState<string>("");
 
   useFocusEffect(
     useCallback(() => {
       getUsers()
-        .then((res: any) => {
-          const user: IUser = res[0];
+        .then((response: any) => {
+          const user: IUser = response[0];
           if (user) {
-            setUser(user);
-            const now = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
+            console.log("home user", user);
+            const now = new Date();
 
-            const breakfastHour = +user.breakfast.split(":")[0];
+            const breakfastHour = +user.breakfast.split(":")[0] + 3;
             const breakfastMinute = +user.breakfast.split(":")[1];
-            const lunchHour = +user.lunch.split(":")[0];
+            const lunchHour = +user.lunch.split(":")[0] + 5;
             const lunchMinute = +user.lunch.split(":")[1];
+            const dinnerHour = +user.dinner.split(":")[0] + 1;
+            const dinnerMinute = +user.dinner.split(":")[1];
 
-            const breakfastTimeUtcPlus7 = new Date(now);
-            breakfastTimeUtcPlus7.setUTCHours(breakfastHour + 7);
-            breakfastTimeUtcPlus7.setUTCMinutes(breakfastMinute);
+            const breakfastEnd = new Date(now);
+            breakfastEnd.setHours(breakfastHour);
+            breakfastEnd.setMinutes(breakfastMinute);
 
-            const lunchTimeUtcPlus7 = new Date(now);
-            lunchTimeUtcPlus7.setUTCHours(lunchHour + 7);
-            lunchTimeUtcPlus7.setUTCMinutes(lunchMinute);
+            const lunchEnd = new Date(now);
+            lunchEnd.setHours(lunchHour);
+            lunchEnd.setMinutes(lunchMinute);
 
-            const nextDayStartTimeUtcPlus7 = new Date(now);
-            nextDayStartTimeUtcPlus7.setDate(
-              nextDayStartTimeUtcPlus7.getUTCDate()
-            );
-            nextDayStartTimeUtcPlus7.setUTCHours(6);
-            nextDayStartTimeUtcPlus7.setUTCMinutes(59);
+            const dinnerEnd = new Date(now);
+            dinnerEnd.setHours(dinnerHour);
+            dinnerEnd.setMinutes(dinnerMinute);
 
-            const currentDate = new Date();
-            const timeZoneOffset = 7 * 60 * 60 * 1000; // UTC+7 offset in milliseconds
-            const nowTime = new Date(
-              currentDate.getTime() - 4 * 60 * 60 * 1000 - timeZoneOffset
-            );
+            const dinnerStartClock = +user.dinner.split(":")[0];
+            const dinnerStart = new Date(now);
+            dinnerStart.setHours(dinnerStartClock);
+            dinnerStart.setMinutes(dinnerMinute);
 
-            console.log(nowTime);
-            const str = new Date().toLocaleString("en-US", {
-              timeZone: "Asia/Jakarta",
-            });
-            console.log(str);
-            console.log(new Date());
+            const nowTime = new Date();
 
-            if (
-              nowTime <= breakfastTimeUtcPlus7 &&
-              nowTime > nextDayStartTimeUtcPlus7
-            ) {
+            if (nowTime.getTime() <= breakfastEnd.getTime()) {
+              console.log("breakfast", true);
+              setHourTask(user.breakfast);
               setSchedule(SettingNameID.SARAPAN);
             }
-
             if (
-              nowTime <= lunchTimeUtcPlus7 &&
-              nowTime > breakfastTimeUtcPlus7
+              nowTime.getTime() <= lunchEnd.getTime() &&
+              nowTime.getTime() > breakfastEnd.getTime()
             ) {
+              console.log("lunch", true);
+              setHourTask(user.lunch);
               setSchedule(SettingNameID.MAKAN_SIANG);
             }
 
             if (
-              nowTime > lunchTimeUtcPlus7 &&
-              nowTime < nextDayStartTimeUtcPlus7
+              nowTime.getTime() > lunchEnd.getTime() &&
+              nowTime.getTime() <= dinnerEnd.getTime()
             ) {
+              console.log("dinner", true);
+              setHourTask(user.dinner);
               setSchedule(SettingNameID.MAKAN_MALAM);
             }
           }
         })
         .catch((err) => console.log(err));
+
+      // return () => {
+      //   Notifications.removeNotificationSubscription(
+      //     notificationListener.current
+      //   );
+      //   Notifications.removeNotificationSubscription(responseListener.current);
+      //   subscription.remove();
+      // };
     }, [])
   );
+
+  const gradientProps = {
+    startColor: "#E6E7FF",
+    endColor: "white",
+  };
 
   return (
     <>
@@ -110,7 +115,7 @@ export default function Home() {
               textAlign: "center",
             }}
           >
-            {days}
+            {appDayjs.days}
           </Text>
           <Text
             style={{
@@ -120,14 +125,13 @@ export default function Home() {
               textAlign: "center",
             }}
           >
-            {date} ,{year}
+            {appDayjs.date} ,{appDayjs.year}
           </Text>
 
           <View
             style={{
               justifyContent: "center",
               alignItems: "center",
-              // backgroundColor: "yellow",
             }}
           >
             <AnalogClock
@@ -147,14 +151,13 @@ export default function Home() {
             <TaskCard
               is_active={true}
               nameTask={`Waktu ${schedule}`}
-              // hourTask="11:00 - 12:00"
-              hourTask={`${user.breakfast} - ${+user.breakfast.split(":")[0] + +1}:${user.breakfast.split(":")[1]}`}
+              hourTask={`${hourTask} - ${+hourTask.split(":")[0] + +1}:${hourTask.split(":")[1]}`}
             />
             {schedule === SettingNameID.SARAPAN && (
               <TaskCard
                 is_active={false}
                 nameTask="Waktu Nyemil"
-                hourTask={`${+user.breakfast.split(":")[0] + +2}:${user.breakfast.split(":")[1]} - ${+user.breakfast.split(":")[0] + +3}:${user.breakfast.split(":")[1]}`}
+                hourTask={`${+hourTask.split(":")[0] + +2}:${hourTask.split(":")[1]} - ${+hourTask.split(":")[0] + +3}:${hourTask.split(":")[1]}`}
               />
             )}
             {schedule === SettingNameID.MAKAN_SIANG && (
@@ -162,12 +165,12 @@ export default function Home() {
                 <TaskCard
                   is_active={false}
                   nameTask="Waktu Minum"
-                  hourTask={`${+user.breakfast.split(":")[0] + +2}:${user.breakfast.split(":")[1]} - ${+user.breakfast.split(":")[0] + +3}:${user.breakfast.split(":")[1]}`}
+                  hourTask={`${+hourTask.split(":")[0] + +2}:${hourTask.split(":")[1]} - ${+hourTask.split(":")[0] + +3}:${hourTask.split(":")[1]}`}
                 />
                 <TaskCard
                   is_active={false}
                   nameTask="Waktunya Nyemil"
-                  hourTask={`${+user.breakfast.split(":")[0] + +4}:${user.breakfast.split(":")[1]} - ${+user.breakfast.split(":")[0] + +5}:${user.breakfast.split(":")[1]}`}
+                  hourTask={`${+hourTask.split(":")[0] + +4}:${hourTask.split(":")[1]} - ${+hourTask.split(":")[0] + +5}:${hourTask.split(":")[1]}`}
                 />
               </>
             )}

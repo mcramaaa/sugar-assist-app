@@ -17,7 +17,7 @@ export default function Profile() {
   }
 
   function handleSubmit() {
-    setUser(userName);
+    setUser({ ...user, name: userName });
     Keyboard.dismiss();
     setIsEdit(false);
   }
@@ -66,7 +66,7 @@ export default function Profile() {
           }}
         >
           <Text style={{ textAlign: "center", fontSize: 25 }}>Nama :</Text>
-          <Text style={{ textAlign: "center", fontSize: 25 }}>{user}</Text>
+          <Text style={{ textAlign: "center", fontSize: 25 }}>{user.name}</Text>
           <AppButton
             name="Ubah Nama"
             onPress={ChangeNamBtn}

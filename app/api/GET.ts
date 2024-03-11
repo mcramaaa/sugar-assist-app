@@ -1,5 +1,4 @@
-import * as SQLite from "expo-sqlite";
-const db = SQLite.openDatabase("sapi.db");
+import { db } from "./init";
 
 export function getUsers() {
   return new Promise((resolve, reject) => {
