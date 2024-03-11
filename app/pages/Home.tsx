@@ -15,10 +15,10 @@ export default function Home() {
     startColor: "#E6E7FF",
     endColor: "white",
   };
+
   const days = moment().format("dddd");
   const date = moment().format("DD MMMM");
   const year = moment().format("YYYY");
-  // useEffect(() => {}, []);
 
   return (
     <>

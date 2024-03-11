@@ -1,7 +1,7 @@
 import React from "react";
 
 import GradientLayout from "../components/Layout/GradientLayout";
-import { Button, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import FeatureHead from "../components/FeatureHead";
 import AppScrollView from "../components/AppScrollView";
 import AppButton from "../components/AppButton";
@@ -25,7 +25,6 @@ export default function Setting() {
       <AppScrollView
         style={{
           marginTop: 30,
-          height: "100%",
           borderRadius: 20,
           marginBottom: 50,
         }}
