@@ -27,7 +27,7 @@ export default function TaskCard(props: IProps) {
     >
       <Image
         contentFit="contain"
-        source={require("../../../assets/AppIcon.png")}
+        source={require("../../../assets/taskIcon/eatIcon.png")}
         style={{ height: 50, width: 50 }}
       />
       <View>

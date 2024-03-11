@@ -125,7 +125,7 @@ export default function NewUser() {
               textAlign: "center",
             }}
           >
-            Sugar O'Clock Assistant for Parental Intervention
+            Sugar Clock Assistant for Parental Intervention
           </Text>
         </View>
         <View

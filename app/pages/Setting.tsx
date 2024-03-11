@@ -50,7 +50,6 @@ export default function Setting() {
       <AppScrollView
         style={{
           marginTop: 30,
-          height: "100%",
           borderRadius: 20,
           marginBottom: 50,
         }}

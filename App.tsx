@@ -25,7 +25,7 @@ export default function App() {
   const { initNotification, registerForPushNotificationsAsync } =
     useNotification();
   const [fontsLoaded] = useFonts({
-    "LilitaOne-Regular": require("./assets/fonts/LilitaOne-Regular.ttf"),
+    "LilitaOne-Regular": require("./assets/fonts/Madimi-Regular.ttf"),
     "Poppins-Bold": require("./assets/fonts/Poppins-Bold.ttf"),
     "Poppins-SemiBold": require("./assets/fonts/Poppins-SemiBold.ttf"),
     "Poppins-Medium": require("./assets/fonts/Poppins-Medium.ttf"),

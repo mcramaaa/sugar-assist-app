@@ -17,7 +17,7 @@ export default function AppULText(props: IProps) {
           style={
             titleStyle !== undefined
               ? [titleStyle]
-              : { fontFamily: "Poppins-SemiBold", width: "30%" }
+              : { fontFamily: "Poppins-SemiBold", width: "100%", fontSize: 18 }
           }
         >
           {title}
