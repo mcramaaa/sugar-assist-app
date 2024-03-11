@@ -7,6 +7,7 @@ import {
 import { Image } from "expo-image";
 import { useUser } from "../hooks/zustand";
 import { useNavigation } from "@react-navigation/native";
+import { emptyTable } from "../api/init";
 
 export default function AppDrawer(props: any) {
   const { user } = useUser();
@@ -58,14 +59,16 @@ export default function AppDrawer(props: any) {
                   textAlign: "center",
                 }}
               >
-                Hai {user}
+                Hai {user.name}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
-      <Text>we are</Text>
+      <Text style={{ marginBottom: 100 }} onPress={emptyTable}>
+        we are
+      </Text>
     </View>
   );
 }

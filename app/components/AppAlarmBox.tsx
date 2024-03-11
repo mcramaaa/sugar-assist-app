@@ -1,55 +1,24 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import * as SQLite from "expo-sqlite";
-import { ltrimFirstZero } from "../helpers/ltrimZero";
+import { SettingNameEN, SettingNameID } from "../enum/setting.enum";
+import { IUser } from "../hooks/zustand";
+import { editUserSchedule } from "../api/PATCH";
 
 type TProps = {
   tittle: string;
-  alarmData: any;
-  notifications: any;
-  initNotification: any;
+  alarmData?: IUser;
+  notifications?: any;
+  initNotification?: any;
+  handlePayload?: (name: string, selectedDate: string[]) => void;
 };
 
 export default function AppAlarmBox(props: TProps) {
-  const { tittle, alarmData, notifications, initNotification } = props;
+  const { tittle, alarmData, notifications, initNotification, handlePayload } =
+    props;
 
-  const db = SQLite.openDatabase("gimul.db");
-
-  const [date, setDate] = useState(new Date(setDefaultAlarm()));
+  const [date, setDate] = useState(setDefaultAlarm());
   const [show, setShow] = useState(false);
-
-  function editAlarm(payload: any) {
-    return new Promise((resolve: any, reject: any) => {
-      db.transaction((tx) => {
-        tx.executeSql(
-          "UPDATE alarms SET tag = ?, hours = ?, minute = ? WHERE id = ?",
-          [payload.tag, payload.hours, payload.minute, payload.id],
-          (_, { rowsAffected }) => {
-            if (rowsAffected > 0) {
-              notifications.cancelScheduledNotificationAsync(
-                `${alarmData.tag}`
-              );
-              initNotification({
-                title: `${payload.tag}`,
-                body: `Alarm ${payload.tag}`,
-                hour: Number(ltrimFirstZero(`${payload.hours}`)),
-                minute: Number(ltrimFirstZero(`${payload.minute}`)),
-                identifier: `${payload.tag}`,
-              });
-              resolve();
-            } else {
-              reject(new Error("User not found"));
-            }
-          },
-          (_, error) => {
-            reject(error);
-            return false;
-          }
-        );
-      });
-    });
-  }
 
   function onChange(event: any, selectedDate: any) {
     const currentDate = selectedDate;
@@ -61,17 +30,39 @@ export default function AppAlarmBox(props: TProps) {
       .format(currentDate)
       .split(".");
 
-    editAlarm(
-      Object.assign({
-        id: alarmData.id,
-        tag: alarmData.tag,
-        hours: timeToStore[0],
-        minute: timeToStore[1],
-      })
-    );
-
     setShow(false);
-    setDate(currentDate);
+    let newTitle: string = "";
+    switch (tittle) {
+      case SettingNameID.SARAPAN:
+        newTitle = SettingNameEN.SARAPAN;
+        break;
+      case SettingNameID.MAKAN_SIANG:
+        newTitle = SettingNameEN.MAKAN_SIANG;
+        break;
+      case SettingNameID.MAKAN_MALAM:
+        newTitle = SettingNameEN.MAKAN_MALAM;
+        break;
+
+      default:
+        break;
+    }
+    if (!handlePayload && alarmData && alarmData.id && event.type === "set") {
+      editUserSchedule(
+        { id: alarmData.id, clock: timeToStore.join(":") },
+        newTitle
+      ).then((res: any) => {
+        if (res.rowsAffected > 0) {
+          const newDate = new Date();
+          newDate.setHours(res.clock.split(":")[0]);
+          newDate.setMinutes(res.clock.split(":")[1]);
+          setDate(newDate);
+        }
+      });
+    }
+    if (handlePayload) {
+      handlePayload(tittle, timeToStore);
+      setDate(currentDate);
+    }
   }
 
   function showMode() {
@@ -84,16 +75,24 @@ export default function AppAlarmBox(props: TProps) {
 
   function setDefaultAlarm() {
     const now = new Date();
+    let scheduleTime: string = "";
 
-    const dateWithTime = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      alarmData.hours,
-      alarmData.minute
-    );
+    if (alarmData && alarmData.breakfast) {
+      if (tittle === SettingNameID.SARAPAN) scheduleTime = alarmData.breakfast;
+      if (tittle === SettingNameID.MAKAN_SIANG) scheduleTime = alarmData.lunch;
+      if (tittle === SettingNameID.MAKAN_MALAM) scheduleTime = alarmData.dinner;
+      const dateWithTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        +scheduleTime.split(":")[0],
+        +scheduleTime.split(":")[1]
+      );
 
-    return dateWithTime;
+      return dateWithTime;
+    } else {
+      return new Date();
+    }
   }
 
   return (

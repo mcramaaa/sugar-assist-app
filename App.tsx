@@ -12,12 +12,18 @@ import Setting from "./app/pages/Setting";
 import About from "./app/pages/About";
 import { AntDesign } from "@expo/vector-icons";
 import { useUser } from "./app/hooks/zustand";
-import * as SQLite from "expo-sqlite";
 import { useEffect } from "react";
+import { initDatabases } from "./app/api/init";
+import { getUsers } from "./app/api/GET";
+import useNotification from "./app/hooks/useNotification";
+import { SettingNameEN, SettingNameID } from "./app/enum/setting.enum";
 
 const Drawer = createDrawerNavigator();
+
 export default function App() {
   const { user, setUser } = useUser();
+  const { initNotification, registerForPushNotificationsAsync } =
+    useNotification();
   const [fontsLoaded] = useFonts({
     "LilitaOne-Regular": require("./assets/fonts/Madimi-Regular.ttf"),
     "Poppins-Bold": require("./assets/fonts/Poppins-Bold.ttf"),
@@ -26,26 +32,58 @@ export default function App() {
     "Poppins-Regular": require("./assets/fonts/Poppins-Regular.ttf"),
   });
 
-  const db = SQLite.openDatabase("sapi.db");
-
-  function initDatabases() {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL, breakfast VARCHAR(100), lunch VARCHAR(100), dinner VARCHAR(100) );",
-        [],
-        () => console.log("Succes create Users Table"),
-        (error) => {
-          if (error) {
-            console.error("Error creating table: ", error);
-          }
-          return false;
-        }
-      );
-    });
-  }
-
   useEffect(() => {
+    registerForPushNotificationsAsync().then((token) => console.log(token));
+    getUsers()
+      .then((userRows: any) => {
+        if (userRows.length > 0) {
+          const user = userRows[0];
+          setUser({
+            name: userRows[0].name,
+            breakfast: userRows[0].breakfast,
+            lunch: userRows[0].lunch,
+            dinner: userRows[0].dinner,
+          });
+
+          /**
+           * NOtification Set
+           */
+
+          initNotification({
+            title: `${SettingNameID.SARAPAN} Notification`,
+            body: `Saat ini adalah waktunya ${SettingNameID.SARAPAN}`,
+            hour: user.breakfast.split(":")[0],
+            minute: user.breakfast.split(":")[1],
+            identifier: SettingNameEN.SARAPAN,
+          });
+          initNotification({
+            title: `${SettingNameID.MAKAN_SIANG} Notification`,
+            body: `Saat ini adalah waktunya ${SettingNameID.MAKAN_SIANG}`,
+            hour: user.lunch.split(":")[0],
+            minute: user.lunch.split(":")[1],
+            identifier: SettingNameEN.MAKAN_SIANG,
+          });
+          initNotification({
+            title: `${SettingNameID.MAKAN_MALAM} Notification`,
+            body: `Saat ini adalah waktunya ${SettingNameID.MAKAN_MALAM}`,
+            hour: user.dinner.split(":")[0],
+            minute: user.dinner.split(":")[1],
+            identifier: SettingNameEN.MAKAN_MALAM,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
     initDatabases();
+
+    //  return () => {
+    //     Notifications.removeNotificationSubscription(
+    //       notificationListener.current
+    //     );
+    //     Notifications.removeNotificationSubscription(responseListener.current);
+    //     subscription.remove();
+    //   };
   }, []);
 
   if (!fontsLoaded) return null;
@@ -60,8 +98,8 @@ export default function App() {
             drawerActiveTintColor: "#42459E",
             headerTintColor: "black",
           }}
-          initialRouteName="AppDrawer"
-          // initialRouteName={`${user !== "" ? "AppTabs" : "newUser"}`}
+          // initialRouteName="Setting"
+          initialRouteName={`${user.name && user.lunch ? "AppDrawer" : user.name && !user.lunch ? "Setting" : "NewUser"}`}
         >
           <Drawer.Screen
             name="Home"
@@ -114,7 +152,7 @@ export default function App() {
             }}
           />
           <Drawer.Screen
-            name="newUser"
+            name="NewUser"
             component={NewUser}
             options={{ headerShown: false, drawerItemStyle: { height: 0 } }}
           />

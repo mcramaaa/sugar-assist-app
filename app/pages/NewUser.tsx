@@ -5,59 +5,80 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import Layout from "../components/Layout/Layout";
-import { useNavigation } from "@react-navigation/native";
-import * as SQLite from "expo-sqlite";
-import { Image } from "expo-image";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AppButton from "../components/AppButton";
-import { useUser } from "../hooks/zustand";
+import { IUser, useUser } from "../hooks/zustand";
+import { SettingNameID } from "../enum/setting.enum";
+import AppAlarmBox from "../components/AppAlarmBox";
+import { createUser } from "../api/POST";
 
 export default function NewUser() {
   const { setUser } = useUser();
-  const [userName, setUserName] = useState("");
-
-  const db = SQLite.openDatabase("sapi.db");
-
   const navigation = useNavigation();
 
-  function createUser() {
-    return new Promise((resolve, reject) => {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `INSERT INTO users (name) values (?)`,
-          [userName],
-          (_, { insertId, rowsAffected }) => {
-            resolve({ insertId, rowsAffected });
-          },
-          (error) => {
-            reject(error);
-            return false;
-          }
-        );
-      });
-    });
-  }
+  // const [userName, setUserName] = useState<string>("");
+  const [payload, setPayload] = useState<IUser>({
+    name: "",
+    breakfast: "",
+    dinner: "",
+    lunch: "",
+  });
+
+  const [errorObj, setErrorObj] = useState<Record<string, string>>({
+    name: "",
+  });
+
+  const [isCrud, setIsCrud] = useState(0);
 
   function handleSubmit() {
+    setIsCrud(isCrud + 1);
+    const error: Record<string, string> = {};
+    if (!payload.name) {
+      error.name = "Name should not be empty!";
+    }
+
+    if (Object.values(error).length > 0) {
+      Object.assign(errorObj, error);
+      return;
+    }
     Keyboard.dismiss();
-    createUser()
+    createUser(payload)
       .then((res: any) => {
         if (res.rowsAffected === 1) {
-          setUser(userName);
+          setUser(payload);
           navigation.navigate("Home" as never);
         }
       })
       .catch((err) => {
         console.log(err);
       });
-    console.log("tes");
   }
 
   function handleTextInput(value: string) {
-    setUser(value);
-    setUserName(value);
+    setErrorObj({ ...errorObj, name: "" });
+    setPayload({ ...payload, name: value });
   }
+
+  function handlePayload(name: string, selectedDate: string[]) {
+    switch (name) {
+      case SettingNameID.SARAPAN:
+        setPayload({ ...payload, breakfast: selectedDate.join(":") });
+        break;
+      case SettingNameID.MAKAN_SIANG:
+        setPayload({ ...payload, lunch: selectedDate.join(":") });
+        break;
+      case SettingNameID.MAKAN_MALAM:
+        setPayload({ ...payload, dinner: selectedDate.join(":") });
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  useFocusEffect(useCallback(() => {}, [isCrud]));
 
   return (
     <Layout
@@ -79,11 +100,11 @@ export default function NewUser() {
           },
         ]}
       >
-        <Image
+        {/* <Image
           source={require("../../assets/AppIcon.png")}
           contentFit="contain"
           style={{ minHeight: 200, width: "100%" }}
-        />
+        /> */}
         <View>
           <Text
             style={{
@@ -125,7 +146,8 @@ export default function NewUser() {
           <TextInput
             // placeholder={placeholder}
             style={{
-              borderColor: "#42459E",
+              // borderColor: "#42459E",
+              borderColor: `${errorObj.name ? "red" : "#42459E"}`,
               borderWidth: 1,
               width: 280,
               height: 45,
@@ -135,6 +157,29 @@ export default function NewUser() {
             }}
             onChangeText={handleTextInput}
           />
+          {errorObj.name && (
+            <View
+              style={{
+                // backgroundColor: "yellow",
+                width: "100%",
+                paddingHorizontal: 20,
+                paddingTop: 2,
+              }}
+            >
+              <Text style={{ color: "red", fontSize: 12 }}>
+                {errorObj.name}
+              </Text>
+            </View>
+          )}
+
+          {Object.values(SettingNameID).map((setting, i) => (
+            <AppAlarmBox
+              tittle={setting}
+              key={i}
+              handlePayload={handlePayload}
+            />
+          ))}
+
           <AppButton
             BtnStyle={{
               backgroundColor: "#E6E7FF",
